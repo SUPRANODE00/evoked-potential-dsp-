@@ -1,24 +1,61 @@
-import numpy as np
-import scipy.signal as signal
+import math
 
 def initialize_ep_pipeline(sample_rate=250.0):
-    nyquist = 0.5 * sample_rate
-    b_hp, a_hp = signal.butter(4, 0.5 / nyquist, btype='high')
+    """
+    Pure Python implementation of digital signal processing filters.
+    Returns tracking coefficients instead of scipy arrays.
+    """
+    # 60Hz Notch Filter calculation using direct pole-zero mapping
     f0 = 60.0
-    Q = 30.0  
-    b_notch, a_notch = signal.iirnotch(f0, Q, sample_rate)
-    return (b_hp, a_hp), (b_notch, a_notch)
+    w0 = 2.0 * math.pi * f0 / sample_rate
+    Q = 30.0
+    bw = w0 / Q
+    
+    # Calculate IIR notch coefficients manually
+    alpha = math.sin(bw) / 2.0
+    b0 = 1.0
+    b1 = -2.0 * math.cos(w0)
+    b2 = 1.0
+    a0 = 1.0 + alpha
+    a1 = -2.0 * math.cos(w0)
+    a2 = 1.0 - alpha
+    
+    notch_b = [b0/a0, b1/a0, b2/a0]
+    notch_a = [1.0, a1/a0, a2/a0]
+    
+    # Simple High-pass (0.5 Hz target) coefficient mapping
+    rc = 1.0 / (2.0 * math.pi * 0.5)
+    dt = 1.0 / sample_rate
+    alpha_hp = rc / (rc + dt)
+    
+    hp_b = [alpha_hp, -alpha_hp, 0.0]
+    hp_a = [1.0, -(2.0 * alpha_hp - 1.0), 0.0]
+    
+    return (hp_b, hp_a), (notch_b, notch_a)
 
 def adaptive_loop_suppression(primary_signal, reference_noise, learning_rate=0.01):
+    """Pure Python adaptive filter loop utilizing LMS optimization."""
     n_samples = len(primary_signal)
     filter_order = 32
-    weights = np.zeros(filter_order)
-    clean_output = np.zeros(n_samples)
-    padded_ref = np.concatenate((np.zeros(filter_order - 1), reference_noise))
+    weights = [0.0] * filter_order
+    clean_output = [0.0] * n_samples
+    
+    # Create a padded reference buffer
+    padded_ref = [0.0] * (filter_order - 1) + list(reference_noise)
+    
     for i in range(n_samples):
+        # Extract and reverse the reference window array
         x = padded_ref[i:i + filter_order][::-1]
-        loop_prediction = np.dot(weights, x)
+        
+        # Calculate dot product
+        loop_prediction = sum(w * xi for w, xi in zip(weights, x))
+        
+        # Calculate the error metrics
         error = primary_signal[i] - loop_prediction
         clean_output[i] = error
-        weights += 2 * learning_rate * error * x
+        
+        # Update filter taps using the learning rate parameter
+        for j in range(filter_order):
+            weights[j] += 2.0 * learning_rate * error * x[j]
+            
     return clean_output
