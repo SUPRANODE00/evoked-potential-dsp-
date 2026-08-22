@@ -16,3 +16,12 @@ omit = ["tests/*"]
 [tool.pytest.ini_options]
 addopts = "--cov=. --cov-report=term-missing --cov-fail-under=100"
 testpaths = ["tests"]
+
+[tool.cibuildwheel]
+build = "cp310-* cp311-* cp312-* cp313-*"
+skip = "*-win32 *-manylinux_i686 pp* *musllinux*"
+test-requires = "pytest>=8.0.0 numpy"
+test-command = "pytest {project}/tests"
+
+[tool.cibuildwheel.linux]
+manylinux-x86_64-image = "manylinux2014"
