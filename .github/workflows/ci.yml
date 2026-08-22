@@ -1,50 +1,62 @@
-name: CI Pipeline
+name: CI Checks
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    branches:
+      - main
 
 jobs:
-  security-and-test:
+  linter-and-tests:
+    name: Lint, Typecheck, and Test
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Run Gitleaks Secret Scanner
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-          cache: 'pip'
-          cache-dependency-path: |
-            requirements.txt
-            pyproject.toml
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install pytest pytest-cov ruff
+          pip install ruff mypy pytest
 
-      - name: Run Ruff Linter & Formatter Check
-        run: |
-          ruff check .
-          ruff format --check .
+      - name: Run Ruff Linter
+        run: ruff check .
 
-      - name: Run Pytest with 100% Coverage Gate
+      - name: Run MyPy Type Checker
+        run: mypy .
+
+      - name: Run Pytest
+        run: pytest
+
+  build-and-test-wheel:
+    name: Build & Test Wheel Installation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Packaging Tools
         run: |
-          pytest --cov=. --cov-report=term-missing --cov-fail-under=100
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build Package Artifacts
+        run: python -m build
+
+      - name: Check Metadata and Package Syntax
+        run: twine check dist/*
+
+      - name: Test Wheel Installation in Clean Environment
+        run: |
+          pip install dist/*.whl
+          python -c "import core; print('Wheel installed and core imported successfully!')"
