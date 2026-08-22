@@ -15,7 +15,7 @@ def test_sap_filter_processing():
 
     # Fill kernel buffer to trigger matrix integration branch
     for _ in range(10):
-        _output, phase_acc = filter_node.process_telemetry(
+        __output, phase_acc = filter_node.process_telemetry(
             raw_value=0.5, delta_time=0.01
         )
 
