@@ -9,8 +9,8 @@ def initialize_ep_pipeline(sample_rate=250.0):
     # 60Hz Notch Filter calculation using direct pole-zero mapping
     f0 = 60.0
     w0 = 2.0 * math.pi * f0 / sample_rate
-    Q = 30.0
-    bw = w0 / Q
+    q = 30.0
+    bw = w0 / q
 
     # Calculate IIR notch coefficients manually
     alpha = math.sin(bw) / 2.0
