@@ -1,5 +1,18 @@
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "SIM", "RUF"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
 [tool.coverage.run]
 omit = ["tests/*"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=. --cov-report=term-missing --cov-fail-under=100"
+testpaths = ["tests"]
