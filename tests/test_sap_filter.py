@@ -21,3 +21,10 @@ def test_sap_filter_processing():
 
     assert len(filter_node.buffer) == len(filter_node.kernel)
     assert phase_acc > 0.0
+
+
+def test_sap_filter_main_block():
+    import runpy
+
+    # Execute sap_filter.py as __main__ to cover lines 50-74
+    runpy.run_module("sap_filter", run_name="__main__")

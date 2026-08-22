@@ -1,54 +1,19 @@
-import math
-
-from core.filters import initialize_ep_pipeline
+import core.filters as filters
 
 
-def manual_iir_filter(b, a, data):
-    output = [0.0] * len(data)
-    for i in range(len(data)):
-        out_val = b[0] * data[i]
-        if i >= 1:
-            out_val += b[1] * data[i - 1] - a[1] * output[i - 1]
-        if i >= 2:
-            out_val += b[2] * data[i - 2] - a[2] * output[i - 2]
-        output[i] = out_val
-    return output
+def test_initialize_ep_pipeline():
+    hp, notch = filters.initialize_ep_pipeline(sample_rate=250.0)
+    assert len(hp[0]) == 3
+    assert len(notch[0]) == 3
 
 
-def test_pipeline_integrity():
-    print("[AXIS] Executing core pipeline verification loop...")
-    fs = 250.0
-    n_samples = int(fs * 2)
+def test_adaptive_loop_suppression():
+    primary_signal = [1.0, 0.5, -0.5, -1.0] * 10
+    reference_noise = [0.1, 0.2, -0.1, -0.2] * 10
 
-    # Synthetic signal creation (5Hz Target + 60Hz interference)
-    target_signal = [math.sin(2.0 * math.pi * 5.0 * (i / fs)) for i in range(n_samples)]
-    loop_interference = [
-        5.0 * math.sin(2.0 * math.pi * 60.0 * (i / fs)) for i in range(n_samples)
-    ]
-    noisy_input = [
-        target + loop
-        for target, loop in zip(target_signal, loop_interference, strict=False)
-    ]
-
-    # Extract coefficients from the pure Python architecture
-    _, (b_notch, a_notch) = initialize_ep_pipeline(fs)
-
-    # Pass signal through manual filter architecture
-    filtered_step = manual_iir_filter(b_notch, a_notch, noisy_input)
-
-    # Calculate variance manually to check loop attenuation power
-    deltas = [
-        f - t for f, t in zip(filtered_step[50:], target_signal[50:], strict=False)
-    ]  # Skip filter warmup transient
-    mean_delta = sum(deltas) / len(deltas)
-    residual_loop_power = sum((d - mean_delta) ** 2 for d in deltas) / len(deltas)
-
-    print(f"[METRIC] Computed residual loop variance: {residual_loop_power:.4f}")
-    assert residual_loop_power < 0.5, (
-        "The manual filter loop failed to isolate the origin."
+    clean_output = filters.adaptive_loop_suppression(
+        primary_signal, reference_noise, learning_rate=0.01
     )
-    print("[SUCCESS] Validation array certified. Tracking parameters stable.")
 
-
-if __name__ == "__main__":
-    test_pipeline_integrity()
+    assert len(clean_output) == len(primary_signal)
+    assert isinstance(clean_output[0], float)

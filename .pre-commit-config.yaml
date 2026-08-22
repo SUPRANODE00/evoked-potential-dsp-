@@ -2,16 +2,17 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.6
     hooks:
+      # Run the linter
       - id: ruff
-        args: [--fix]
+        args: [ --fix ]
+      # Run the formatter
       - id: ruff-format
 
   - repo: local
     hooks:
-      - id: pytest
-        name: pytest
-        entry: pytest
+      - id: pytest-coverage-check
+        name: Run Pytest with 100% Coverage Gate
+        entry: .venv/bin/pytest --cov=. --cov-report=term-missing --cov-fail-under=100
         language: system
-        types: [python]
         pass_filenames: false
         always_run: true
