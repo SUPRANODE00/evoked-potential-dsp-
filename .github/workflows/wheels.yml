@@ -1,10 +1,16 @@
-name: Build and Test Native Wheels
+name: Build, Test, and Release Native Wheels
 
 on:
   push:
     branches: [main]
+    tags:
+      - 'v*'
   pull_request:
     branches: [main]
+
+permissions:
+  contents: write
+  id-token: write
 
 jobs:
   build_wheels:
@@ -33,3 +39,41 @@ jobs:
         with:
           name: cibw-wheels-${{ matrix.os }}
           path: ./wheelhouse/*.whl
+
+  build_sdist:
+    name: Build Source Distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build sdist
+        run: pip install build && python -m build --sdist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-sdist
+          path: dist/*.tar.gz
+
+  publish_release:
+    name: Publish to GitHub Releases and PyPI
+    needs: [build_wheels, build_sdist]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cibw-*
+          path: dist
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+
+      - name: Publish to PyPI via OIDC Trusted Publisher
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
