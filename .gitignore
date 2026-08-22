@@ -3,6 +3,4 @@ __pycache__/
 *.py[cod]
 *$py.class
 target/
-target/
-.venv/
 .venv/
