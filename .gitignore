@@ -4,3 +4,5 @@ __pycache__/
 *$py.class
 target/
 .venv/
+.coverage
+coverage.xml
