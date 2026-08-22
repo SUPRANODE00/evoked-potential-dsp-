@@ -33,3 +33,11 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+[tool.pytest.ini_options]
+addopts = "--cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=80"
+testpaths = ["tests"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=80"
+testpaths = ["tests"]

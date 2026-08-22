@@ -33,9 +33,9 @@ jobs:
         run: |
           ruff format --check .
 
-      - name: Run tests with coverage
+      - name: Run tests with 80% minimum coverage threshold
         run: |
-          pytest --cov=. --cov-report=xml tests/
+          pytest --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=80 tests/
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
