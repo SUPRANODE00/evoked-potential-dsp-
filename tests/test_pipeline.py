@@ -1,4 +1,4 @@
-import core.filters as filters
+from core import filters
 
 
 def test_initialize_ep_pipeline():

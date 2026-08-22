@@ -1,13 +1,27 @@
 repos:
+  # Ruff Linter & Formatter
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.6
+    rev: v0.16.4
     hooks:
-      # Run the linter
       - id: ruff
         args: [ --fix ]
-      # Run the formatter
       - id: ruff-format
 
+  # Gitleaks Credential & Secret Scanner (Fast & Pattern-Based)
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+
+  # Yelp Detect-Secrets (Entropy-Based Scanner)
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: package-lock.json
+
+  # Local Pytest Coverage Gate
   - repo: local
     hooks:
       - id: pytest-coverage-check
