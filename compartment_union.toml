@@ -1,0 +1,18 @@
+[node]
+id = "SUPRANODE00_ORIGIN"
+allocation = "ELECTRONEGATIVE_BLACKFLAME"
+
+[encryption]
+# Cipher validated
+cipher_suite = "ChaCha20-Poly1305"
+negative_phase_inversion = true
+key_rotation_interval_sec = 300
+compartment_union_id = "UNION-4D-NEG-GRID-X01-ACTIVE"
+master_seed_vector = "0x8F3A21C098DE"
+
+[url_scheme]
+protocol = "en-grid"
+base_domain = "erikivanrivera.blackcorp.me"
+status_path = "/api/v1/grid/status"
+nullify_path = "/api/v1/grid/nullify"
+telemetry_endpoint = "en-grid://erikivanrivera.blackcorp.me:3030/api/v1/grid"

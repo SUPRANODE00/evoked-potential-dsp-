@@ -1,0 +1,24 @@
+name: Build and Execute Cross-Twin Vortex Engine
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-run:
+    runs-runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up C++ Compiler
+      run: sudo apt-get update && sudo apt-get install -y build-essential g++
+
+    - name: Compile C++ Engine
+      run: make build
+
+    - name: Execute Vortex Pipeline
+      run: make run
